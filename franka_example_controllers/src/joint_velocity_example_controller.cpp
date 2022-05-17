@@ -14,6 +14,8 @@ namespace franka_example_controllers {
 
 bool JointVelocityExampleController::init(hardware_interface::RobotHW* robot_hardware,
                                           ros::NodeHandle& node_handle) {
+  ros::Duration(2.0).sleep();
+
   velocity_joint_interface_ = robot_hardware->get<hardware_interface::VelocityJointInterface>();
   if (velocity_joint_interface_ == nullptr) {
     ROS_ERROR(
@@ -38,6 +40,22 @@ bool JointVelocityExampleController::init(hardware_interface::RobotHW* robot_har
           "JointVelocityExampleController: Exception getting joint handles: " << ex.what());
       return false;
     }
+  }
+
+  auto* model_interface = robot_hardware->get<franka_hw::FrankaModelInterface>();
+  if (model_interface == nullptr) {
+    ROS_ERROR_STREAM(
+        "JointVelocityExampleController: Error getting model interface from hardware");
+    return false;
+  }
+  try {
+    model_handle_ = std::make_unique<franka_hw::FrankaModelHandle>(
+        model_interface->getHandle("panda_model"));
+  } catch (hardware_interface::HardwareInterfaceException& ex) {
+    ROS_ERROR_STREAM(
+        "JointVelocityExampleController: Exception getting model handle from interface: "
+        << ex.what());
+    return false;
   }
 
   auto state_interface = robot_hardware->get<franka_hw::FrankaStateInterface>();
@@ -65,16 +83,68 @@ bool JointVelocityExampleController::init(hardware_interface::RobotHW* robot_har
     return false;
   }
 
+  // added by jyp on 0517
+  
+  try {
+    state_handle_ = std::make_unique<franka_hw::FrankaStateHandle>(
+        state_interface->getHandle("panda_robot"));
+  } catch (hardware_interface::HardwareInterfaceException& ex) {
+    ROS_ERROR_STREAM(
+        "CartesianImpedanceExampleController: Exception getting state handle from interface: "
+        << ex.what());
+    return false;
+  }
+
+  is_initialized = false;
+  pub_counter = 0;
+  pub_jacoian_matrix_ = node_handle.advertise<std_msgs::Float64MultiArray>("/gazebo_sim/zero_jacobian", 10);
+  pub_joint_angles_ = node_handle.advertise<std_msgs::Float64MultiArray>("/gazebo_sim/joint_angles", 10);
+  sub_q_d_ = node_handle.subscribe("/gazebo_sim/joint_velocity_desired", 10, 
+      &JointVelocityExampleController::jointVelocityCommandCallback, this,
+      ros::TransportHints().reliable().tcpNoDelay());
+
   return true;
 }
 
 void JointVelocityExampleController::starting(const ros::Time& /* time */) {
   elapsed_time_ = ros::Duration(0.0);
+  is_initialized = true;
 }
 
 void JointVelocityExampleController::update(const ros::Time& /* time */,
                                             const ros::Duration& period) {
   elapsed_time_ += period;
+
+  // read robot state
+  // get state variables
+  franka::RobotState robot_state = state_handle_->getRobotState();
+  std::array<double, 42> jacobian_array =
+      model_handle_->getZeroJacobian(franka::Frame::kEndEffector);
+
+  // convert to Eigen
+  Eigen::Map<Eigen::Matrix<double, 6, 7>> jacobian(jacobian_array.data());
+  Eigen::Map<Eigen::Matrix<double, 7, 1>> q(robot_state.q.data());;
+
+  // publish franka state
+  if (pub_counter >= 33) {
+    pub_counter = 0;
+    std_msgs::Float64MultiArray msg1;
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 7; j++) {
+            msg1.data.push_back(jacobian(i, j));
+        }
+    }
+    pub_jacoian_matrix_.publish(msg1);
+
+    std_msgs::Float64MultiArray msg2;
+    for (int i = 0; i < 7; i++) {
+        msg2.data.push_back(q(i));
+    }
+    pub_joint_angles_.publish(msg2);
+  }
+  else {
+    pub_counter++;
+  }
 
   ros::Duration time_max(8.0);
   double omega_max = 0.1;
@@ -84,9 +154,45 @@ void JointVelocityExampleController::update(const ros::Time& /* time */,
   double omega = cycle * omega_max / 2.0 *
                  (1.0 - std::cos(2.0 * M_PI / time_max.toSec() * elapsed_time_.toSec()));
 
-  for (auto joint_handle : velocity_joint_handles_) {
-    joint_handle.setCommand(omega);
+  // for (auto joint_handle : velocity_joint_handles_) {
+  //   joint_handle.setCommand(omega);
+  // }
+}
+
+Eigen::Matrix<double, 7, 1> JointVelocityExampleController::saturateJointVelocity(
+    const Eigen::Matrix<double, 7, 1>& q_d_this_update_,
+    const Eigen::Matrix<double, 7, 1>& q_d_current_executed_) {
+  Eigen::Matrix<double, 7, 1> q_d_saturated{};
+  for (size_t i = 0; i < 7; i++) {
+    double difference = q_d_this_update_[i] - q_d_current_executed_[i];
+    q_d_saturated[i] = 
+        q_d_current_executed_[i] + std::max(std::min(difference, joint_acceleration_max_), -joint_acceleration_max_);
+    q_d_saturated[i] = std::max(std::min(q_d_saturated[i], joint_velocity_max_), -joint_velocity_max_);
   }
+  return q_d_saturated;
+}
+
+void JointVelocityExampleController::jointVelocityCommandCallback(const std_msgs::Float64MultiArray& msg)
+{
+  std::cout << "Enter joint velocity command callback!" << std::endl;
+  if (is_initialized == false) {
+    return;
+  }
+  std::cout << "Start to saturate joint velocity command!" << std::endl;
+  franka::RobotState robot_state = state_handle_->getRobotState();
+  Eigen::Map<Eigen::Matrix<double, 7, 1>> dq(robot_state.dq.data());
+  Eigen::Matrix<double, 7, 1> joint_velocity_command;
+  for (size_t i = 0; i < 7; i++) {
+    joint_velocity_command[i] = msg.data.at(i);
+  }
+  Eigen::Matrix<double, 7, 1> joint_velocity_command_saturated = saturateJointVelocity(joint_velocity_command, dq);
+  for (size_t i = 0; i < 7; i++) {
+    hardware_interface::JointHandle joint_handle = velocity_joint_handles_[i];
+    joint_handle.setCommand(joint_velocity_command_saturated[i]);
+    std::cout << "joint: " << i << " set speed: " << joint_velocity_command_saturated[i] << std::endl;
+  }
+  std::cout << "Set joint velocity successfully!" << std::endl;
+  ROS_INFO("Set joint velocity successfully!");
 }
 
 void JointVelocityExampleController::stopping(const ros::Time& /*time*/) {

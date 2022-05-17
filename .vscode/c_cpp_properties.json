@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/opt/ros/melodic/include",
+                "/home/peter/franka_ws/src/franka_ros/franka_example_controllers/include/franka_example_controllers",
+                "/home/peter/franka_ws/devel/include",
+                "/home/peter/franka_ws/src/franka_ros/franka_hw/include/franka_hw",
+                "/home/peter/franka_ws/libfranka/include",
+                "/usr/include/eigen3"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}

@@ -39,7 +39,7 @@ bool CartesianVelocityExampleController::init(hardware_interface::RobotHW* robot
         "CartesianVelocityExampleController: Exception getting Cartesian handle: " << e.what());
     return false;
   }
-
+  
   auto state_interface = robot_hardware->get<franka_hw::FrankaStateInterface>();
   if (state_interface == nullptr) {
     ROS_ERROR("CartesianVelocityExampleController: Could not get state interface from hardware");

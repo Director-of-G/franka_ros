@@ -16,6 +16,14 @@ namespace franka_example_controllers {
 
 bool CartesianImpedanceExampleController::init(hardware_interface::RobotHW* robot_hw,
                                                ros::NodeHandle& node_handle) {
+  // velocity_joint_interface_ = robot_hw->get<hardware_interface::VelocityJointInterface>();
+  // if (velocity_joint_interface_ == nullptr) {
+  //   ROS_ERROR(
+  //       "CartesianImpedanceExampleController: Error getting velocity joint interface from hardware!");
+  //   return false;
+  // }
+  
+  is_initialized = false;
   std::vector<double> cartesian_stiffness_vector;
   std::vector<double> cartesian_damping_vector;
 
@@ -84,6 +92,17 @@ bool CartesianImpedanceExampleController::init(hardware_interface::RobotHW* robo
     }
   }
 
+  // velocity_joint_handles_.resize(7);
+  // for (size_t i = 0; i < 7; ++i) {
+  //   try {
+  //     velocity_joint_handles_[i] = velocity_joint_interface_->getHandle(joint_names[i]);
+  //   } catch (const hardware_interface::HardwareInterfaceException& ex) {
+  //     ROS_ERROR_STREAM(
+  //         "CartesianImpedanceExampleController: Exception getting joint handles: " << ex.what());
+  //     return false;
+  //   }
+  // }
+
   dynamic_reconfigure_compliance_param_node_ =
       ros::NodeHandle(node_handle.getNamespace() + "dynamic_reconfigure_compliance_param_node");
 
@@ -101,6 +120,15 @@ bool CartesianImpedanceExampleController::init(hardware_interface::RobotHW* robo
 
   cartesian_stiffness_.setZero();
   cartesian_damping_.setZero();
+
+  pub_jacoian_matrix_ = node_handle.advertise<std_msgs::Float64MultiArray>("/gazebo_sim/zero_jacobian", 10);
+  pub_joint_angles_ = node_handle.advertise<std_msgs::Float64MultiArray>("/gazebo_sim/joint_angles", 10);
+  pub_joint_velocities_ = node_handle.advertise<std_msgs::Float64MultiArray>("/gazebo_sim/joint_velocities", 10);
+  pub_ee_pose = node_handle.advertise<std_msgs::Float64MultiArray>("/gazebo_sim/ee_pose", 10);
+  sub_q_d_ = node_handle.subscribe("/gazebo_sim/joint_velocity_desired", 10, 
+      &CartesianImpedanceExampleController::jointVelocityCommandCallback, this,
+      ros::TransportHints().reliable().tcpNoDelay());
+  pub_counter = 0;
 
   return true;
 }
@@ -124,6 +152,8 @@ void CartesianImpedanceExampleController::starting(const ros::Time& /*time*/) {
 
   // set nullspace equilibrium configuration to initial q
   q_d_nullspace_ = q_initial;
+
+  is_initialized = true;
 }
 
 void CartesianImpedanceExampleController::update(const ros::Time& /*time*/,
@@ -144,6 +174,42 @@ void CartesianImpedanceExampleController::update(const ros::Time& /*time*/,
   Eigen::Affine3d transform(Eigen::Matrix4d::Map(robot_state.O_T_EE.data()));
   Eigen::Vector3d position(transform.translation());
   Eigen::Quaterniond orientation(transform.linear());
+
+  if (pub_counter >= 33) {
+    pub_counter = 0;
+    std_msgs::Float64MultiArray msg1;
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 7; j++) {
+            msg1.data.push_back(jacobian(i, j));
+        }
+    }
+    pub_jacoian_matrix_.publish(msg1);
+
+    std_msgs::Float64MultiArray msg2;
+    for (int i = 0; i < 7; i++) {
+        msg2.data.push_back(q(i));
+    }
+    pub_joint_angles_.publish(msg2);
+
+    std_msgs::Float64MultiArray msg3;
+    for (int i = 0; i < 7; i++) {
+        msg3.data.push_back(dq(i));
+    }
+    pub_joint_velocities_.publish(msg3);
+
+    std_msgs::Float64MultiArray msg4;
+    for (int i = 0; i < 3; i++) {
+        msg4.data.push_back(position(i));
+    }
+    Eigen::Matrix<double, 4, 1> quat = orientation.coeffs();
+    for (int i = 0; i < 4; i++) {
+        msg4.data.push_back(quat(i));
+    }
+    pub_ee_pose.publish(msg4);
+  }
+  else{
+    pub_counter++;
+  }
 
   // compute error to desired pose
   // position error
@@ -199,6 +265,21 @@ void CartesianImpedanceExampleController::update(const ros::Time& /*time*/,
   orientation_d_ = orientation_d_.slerp(filter_params_, orientation_d_target_);
 }
 
+Eigen::Matrix<double, 7, 1> CartesianImpedanceExampleController::saturateJointVelocity(
+    const Eigen::Matrix<double, 7, 1>& q_d_this_update_,
+    const Eigen::Matrix<double, 7, 1>& q_d_current_executed_) {
+  Eigen::Matrix<double, 7, 1> q_d_saturated{};
+  std::cout << "Debug point 7" << std::endl;
+  for (size_t i = 0; i < 7; i++) {
+    double difference = q_d_this_update_[i] - q_d_current_executed_[i];
+    q_d_saturated[i] = 
+        q_d_current_executed_[i] + std::max(std::min(difference, joint_acceleration_max_), -joint_acceleration_max_);
+    q_d_saturated[i] = std::max(std::min(q_d_saturated[i], joint_velocity_max_), -joint_velocity_max_);
+  }
+  std::cout << "Debug point 8" << std::endl;
+  return q_d_saturated;
+}
+
 Eigen::Matrix<double, 7, 1> CartesianImpedanceExampleController::saturateTorqueRate(
     const Eigen::Matrix<double, 7, 1>& tau_d_calculated,
     const Eigen::Matrix<double, 7, 1>& tau_J_d) {  // NOLINT (readability-identifier-naming)
@@ -238,6 +319,25 @@ void CartesianImpedanceExampleController::equilibriumPoseCallback(
       msg->pose.orientation.z, msg->pose.orientation.w;
   if (last_orientation_d_target.coeffs().dot(orientation_d_target_.coeffs()) < 0.0) {
     orientation_d_target_.coeffs() << -orientation_d_target_.coeffs();
+  }
+}
+
+void CartesianImpedanceExampleController::jointVelocityCommandCallback(const std_msgs::Float64MultiArray& msg)
+{
+  if (is_initialized == false) {
+    return;
+  }
+  franka::RobotState robot_state = state_handle_->getRobotState();
+  Eigen::Map<Eigen::Matrix<double, 7, 1>> dq(robot_state.dq.data());
+  Eigen::Matrix<double, 7, 1> joint_velocity_command;
+  for (size_t i = 0; i < 7; i++) {
+    joint_velocity_command[i] = msg.data.at(i);
+  }
+  Eigen::Matrix<double, 7, 1> joint_velocity_command_saturated = saturateJointVelocity(joint_velocity_command, dq);
+  for (size_t i = 0; i < 7; i++) {
+    hardware_interface::JointHandle joint_handle = velocity_joint_handles_[i];
+    joint_handle.setCommand(joint_velocity_command_saturated[i]);
+    std::cout << "joint: " << i << " set speed: " << joint_velocity_command_saturated[i] << std::endl;
   }
 }
 

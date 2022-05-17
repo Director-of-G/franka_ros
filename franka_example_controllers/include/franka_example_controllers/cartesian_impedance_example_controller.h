@@ -19,6 +19,7 @@
 #include <franka_example_controllers/compliance_paramConfig.h>
 #include <franka_hw/franka_model_interface.h>
 #include <franka_hw/franka_state_interface.h>
+#include <std_msgs/Float64MultiArray.h>
 
 namespace franka_example_controllers {
 
@@ -55,6 +56,23 @@ class CartesianImpedanceExampleController : public controller_interface::MultiIn
   std::mutex position_and_orientation_d_target_mutex_;
   Eigen::Vector3d position_d_target_;
   Eigen::Quaterniond orientation_d_target_;
+
+  ros::Publisher pub_jacoian_matrix_;
+  ros::Publisher pub_joint_angles_;
+  ros::Publisher pub_joint_velocities_;
+  ros::Publisher pub_ee_pose;
+  ros::Subscriber sub_q_d_;
+  bool is_initialized;
+  int pub_counter;
+  Eigen::Matrix<double, 7, 1> saturateJointVelocity(
+      const Eigen::Matrix<double, 7, 1>& q_d_this_update_,
+      const Eigen::Matrix<double, 7, 1>& q_d_current_executed_
+  );
+  hardware_interface::VelocityJointInterface* velocity_joint_interface_;
+  std::vector<hardware_interface::JointHandle> velocity_joint_handles_;
+  const double joint_velocity_max_{1.0};
+  const double joint_acceleration_max_{0.1};
+  void jointVelocityCommandCallback(const std_msgs::Float64MultiArray& msg);
 
   // Dynamic reconfigure
   std::unique_ptr<dynamic_reconfigure::Server<franka_example_controllers::compliance_paramConfig>>
