@@ -99,6 +99,8 @@ bool JointVelocityExampleController::init(hardware_interface::RobotHW* robot_har
   pub_counter = 0;
   pub_jacoian_matrix_ = node_handle.advertise<std_msgs::Float64MultiArray>("/gazebo_sim/zero_jacobian", 10);
   pub_joint_angles_ = node_handle.advertise<std_msgs::Float64MultiArray>("/gazebo_sim/joint_angles", 10);
+  pub_joint_velocities_ = node_handle.advertise<std_msgs::Float64MultiArray>("/gazebo_sim/joint_velocities", 10);
+  pub_ee_pose = node_handle.advertise<std_msgs::Float64MultiArray>("/gazebo_sim/ee_pose", 10);
   sub_q_d_ = node_handle.subscribe("/gazebo_sim/joint_velocity_desired", 10, 
       &JointVelocityExampleController::jointVelocityCommandCallback, this,
       ros::TransportHints().reliable().tcpNoDelay());
@@ -123,10 +125,14 @@ void JointVelocityExampleController::update(const ros::Time& /* time */,
 
   // convert to Eigen
   Eigen::Map<Eigen::Matrix<double, 6, 7>> jacobian(jacobian_array.data());
-  Eigen::Map<Eigen::Matrix<double, 7, 1>> q(robot_state.q.data());;
+  Eigen::Map<Eigen::Matrix<double, 7, 1>> q(robot_state.q.data());
+  Eigen::Map<Eigen::Matrix<double, 7, 1>> dq(robot_state.dq.data());
+  Eigen::Affine3d transform(Eigen::Matrix4d::Map(robot_state.O_T_EE.data()));
+  Eigen::Vector3d position(transform.translation());
+  Eigen::Quaterniond orientation(transform.linear());
 
   // publish franka state
-  if (pub_counter >= 33) {
+  if (pub_counter >= 10) {
     pub_counter = 0;
     std_msgs::Float64MultiArray msg1;
     for (int i = 0; i < 6; i++) {
@@ -141,6 +147,22 @@ void JointVelocityExampleController::update(const ros::Time& /* time */,
         msg2.data.push_back(q(i));
     }
     pub_joint_angles_.publish(msg2);
+
+    std_msgs::Float64MultiArray msg3;
+    for (int i = 0; i < 7; i++) {
+        msg3.data.push_back(dq(i));
+    }
+    pub_joint_velocities_.publish(msg3);
+
+    std_msgs::Float64MultiArray msg4;
+    for (int i = 0; i < 3; i++) {
+        msg4.data.push_back(position(i));
+    }
+    Eigen::Matrix<double, 4, 1> quat = orientation.coeffs();
+    for (int i = 0; i < 4; i++) {
+        msg4.data.push_back(quat(i));
+    }
+    pub_ee_pose.publish(msg4);
   }
   else {
     pub_counter++;

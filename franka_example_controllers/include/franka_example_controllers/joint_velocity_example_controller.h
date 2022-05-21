@@ -37,6 +37,8 @@ class JointVelocityExampleController : public controller_interface::MultiInterfa
   //added by jyp on 0517
   ros::Publisher pub_jacoian_matrix_;
   ros::Publisher pub_joint_angles_;
+  ros::Publisher pub_joint_velocities_;
+  ros::Publisher pub_ee_pose;
   ros::Subscriber sub_q_d_;
   Eigen::Matrix<double, 7, 1> saturateJointVelocity(
       const Eigen::Matrix<double, 7, 1>& q_d_this_update_,

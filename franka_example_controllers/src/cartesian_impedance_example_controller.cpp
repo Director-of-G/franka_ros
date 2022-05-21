@@ -269,14 +269,12 @@ Eigen::Matrix<double, 7, 1> CartesianImpedanceExampleController::saturateJointVe
     const Eigen::Matrix<double, 7, 1>& q_d_this_update_,
     const Eigen::Matrix<double, 7, 1>& q_d_current_executed_) {
   Eigen::Matrix<double, 7, 1> q_d_saturated{};
-  std::cout << "Debug point 7" << std::endl;
   for (size_t i = 0; i < 7; i++) {
     double difference = q_d_this_update_[i] - q_d_current_executed_[i];
     q_d_saturated[i] = 
         q_d_current_executed_[i] + std::max(std::min(difference, joint_acceleration_max_), -joint_acceleration_max_);
     q_d_saturated[i] = std::max(std::min(q_d_saturated[i], joint_velocity_max_), -joint_velocity_max_);
   }
-  std::cout << "Debug point 8" << std::endl;
   return q_d_saturated;
 }
 
