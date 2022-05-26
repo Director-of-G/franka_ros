@@ -15,6 +15,7 @@
         <geometry>
           <mesh filename="package://${description_pkg}/meshes/visual/link0.dae"/>
         </geometry>
+        <cast_shadows>false</cast_shadows>
       </visual>
       <collision>
         <origin xyz="-0.075 0 0.06" rpy="0 ${pi/2} 0"/>
@@ -40,6 +41,7 @@
         <geometry>
           <mesh filename="package://${description_pkg}/meshes/visual/link1.dae"/>
         </geometry>
+        <cast_shadows>false</cast_shadows>
       </visual>
       <collision>
         <origin xyz="0 0 -0.1915" rpy="0 0 0"/>
@@ -73,6 +75,7 @@
         <geometry>
           <mesh filename="package://${description_pkg}/meshes/visual/link2.dae"/>
         </geometry>
+        <cast_shadows>false</cast_shadows>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -106,6 +109,7 @@
         <geometry>
           <mesh filename="package://${description_pkg}/meshes/visual/link3.dae"/>
         </geometry>
+        <cast_shadows>false</cast_shadows>
       </visual>
       <collision>
         <origin xyz="0 0 -0.145" rpy="0 0 0"/>
@@ -139,6 +143,7 @@
         <geometry>
           <mesh filename="package://${description_pkg}/meshes/visual/link4.dae"/>
         </geometry>
+        <cast_shadows>false</cast_shadows>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -172,6 +177,7 @@
         <geometry>
           <mesh filename="package://${description_pkg}/meshes/visual/link5.dae"/>
         </geometry>
+        <cast_shadows>false</cast_shadows>
       </visual>
       <collision>
         <origin xyz="0 0 -0.26" rpy="0 0 0"/>
@@ -224,6 +230,7 @@
         <geometry>
           <mesh filename="package://${description_pkg}/meshes/visual/link6.dae"/>
         </geometry>
+        <cast_shadows>false</cast_shadows>
       </visual>
       <collision>
         <origin xyz="0 0 -0.03" rpy="0 0 0"/>
@@ -257,6 +264,7 @@
         <geometry>
           <mesh filename="package://${description_pkg}/meshes/visual/link7.dae"/>
         </geometry>
+        <cast_shadows>false</cast_shadows>
       </visual>
       <collision>
         <origin xyz="0 0 0.01" rpy="0 0 0"/>

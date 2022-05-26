@@ -68,7 +68,7 @@
         <geometry>
           <box size="0.1 0.04 0.04"/>
         </geometry>
-        <material name="red"/>
+        <cast_shadows>false</cast_shadows>
       </visual>
 
       <inertial>
@@ -98,6 +98,7 @@
           <box size="0.04 0.001 0.04"/>
         </geometry>
         <pose>0 0 0 1 0 0</pose>
+        <cast_shadows>false</cast_shadows>
       </visual>
     </link>
 
@@ -143,6 +144,7 @@
         <geometry>
           <mesh filename="package://franka_description/meshes/collision/Franka_connecter.stl" scale="0.001 0.001 0.001" />
         </geometry>
+        <cast_shadows>false</cast_shadows>
       </visual>
     </link>
 

@@ -1,7 +1,7 @@
 import * from "grid.material"
 material Gazebo/aruco-98
 {
-  receive_shadows on
+  receive_shadows off
 
   technique
   {
@@ -19,7 +19,7 @@ material Gazebo/aruco-98
 
 material Gazebo/aruco-123
 {
-  receive_shadows on
+  receive_shadows off
 
   technique
   {

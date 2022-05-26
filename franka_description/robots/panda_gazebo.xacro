@@ -26,6 +26,7 @@
         <geometry>
           <mesh filename="package://franka_description/meshes/visual/link0.dae"/>
         </geometry>
+        <cast_shadows>false</cast_shadows>
       </visual>
       <collision>
         <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -49,6 +50,7 @@
         <geometry>
           <mesh filename="package://franka_description/meshes/visual/link1.dae"/>
         </geometry>
+        <cast_shadows>false</cast_shadows>
       </visual>
       <collision>
         <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -81,6 +83,7 @@
         <geometry>
           <mesh filename="package://franka_description/meshes/visual/link2.dae"/>
         </geometry>
+        <cast_shadows>false</cast_shadows>
       </visual>
       <collision>
         <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -113,6 +116,7 @@
         <geometry>
           <mesh filename="package://franka_description/meshes/visual/link3.dae"/>
         </geometry>
+        <cast_shadows>false</cast_shadows>
       </visual>
       <collision>
         <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -145,6 +149,7 @@
         <geometry>
           <mesh filename="package://franka_description/meshes/visual/link4.dae"/>
         </geometry>
+        <cast_shadows>false</cast_shadows>
       </visual>
       <collision>
         <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -177,6 +182,7 @@
         <geometry>
           <mesh filename="package://franka_description/meshes/visual/link5.dae"/>
         </geometry>
+        <cast_shadows>false</cast_shadows>
       </visual>
       <collision>
         <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -209,6 +215,7 @@
         <geometry>
           <mesh filename="package://franka_description/meshes/visual/link6.dae"/>
         </geometry>
+        <cast_shadows>false</cast_shadows>
       </visual>
       <collision>
         <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -241,6 +248,7 @@
         <geometry>
           <mesh filename="package://franka_description/meshes/visual/link7.dae"/>
         </geometry>
+        <cast_shadows>false</cast_shadows>
       </visual>
       <collision>
         <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -295,6 +303,7 @@
         <geometry>
           <mesh filename="package://franka_description/meshes/visual/hand.dae"/>
         </geometry>
+        <cast_shadows>false</cast_shadows>
       </visual>
       <collision>
         <geometry>
@@ -347,6 +356,7 @@
         <geometry>
           <mesh filename="package://franka_description/meshes/visual/finger.dae"/>
         </geometry>
+        <cast_shadows>false</cast_shadows>
       </visual>
       <xacro:finger-collision sign="+" />
     </link>
@@ -358,6 +368,7 @@
         <geometry>
           <mesh filename="package://franka_description/meshes/visual/finger.dae"/>
         </geometry>
+        <cast_shadows>false</cast_shadows>
       </visual>
       <xacro:finger-collision sign="-" />
     </link>
@@ -391,6 +402,9 @@
     <!-- camera -->
     <gazebo reference="camera_link">
       <material>Gazebo/Blue</material>
+      <visual>
+        <cast_shadows>false</cast_shadows>
+      </visual>
       <sensor type="camera" name="camera1">
         <update_rate>30.0</update_rate>
         <camera name="head">
