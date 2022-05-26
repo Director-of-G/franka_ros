@@ -1,0 +1,15 @@
+material ArUco/Marker98
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture 4x4_1000-98.png
+        filtering anistropic
+        max_anisotropy 16
+      }
+    }
+  }
+}

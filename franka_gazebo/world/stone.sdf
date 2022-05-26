@@ -32,5 +32,18 @@
       <uri>model://stone</uri>
       <pose>0.000286 -0.221972 0.475172 0 -0 -0</pose>
     </include>
+    <!--An object to grasp-->
+    <include>
+      <uri>model://object</uri>
+      <pose>-1.05 0.50 0.475172 0 0 2.2</pose>
+    </include>
+    <!-- <joint name="aruco_joint" type="fixed">
+      <child>marker::link</child>
+      <parent>object::link</parent>
+    </joint>
+    <include>
+      <uri>model://marker</uri>
+      <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+    </include> -->
   </world>
 </sdf>

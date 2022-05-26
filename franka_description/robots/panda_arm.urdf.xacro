@@ -44,6 +44,108 @@
       <child  link="$(arg arm_id)_link0" />
     </joint>
 
+    <!-- added by jyp on 0525 -->
+    <!-- joint definition -->
+    <joint name="camera_joint" type="fixed">
+      <axis xyz="0 1 0" />
+      <origin xyz="-1.05 0.5 1.5" rpy="3.1415927 1.5707963 2.2"/>
+      <parent link="world"/>
+      <child link="camera_link"/>
+    </joint>
+
+    <!-- link definition -->
+    <!-- Camera -->
+    <link name="camera_link">
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.1 0.04 0.04"/>
+        </geometry>
+      </collision>
+
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.1 0.04 0.04"/>
+        </geometry>
+        <material name="red"/>
+      </visual>
+
+      <inertial>
+        <mass value="1e-5" />
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+      </inertial>
+    </link>
+
+    <!-- ArUco marker -->
+    <joint name="aruco_joint" type="fixed">
+      <origin xyz="0.06 0.06 0.0" rpy="0.0 0.0 0.785398"/>
+      <parent link="$(arg arm_id)_link8"/>
+      <child link="aruco_link"/>
+    </joint>
+    <link name="aruco_link">
+      <collision>
+        <origin xyz="-0.04 -0.034 0.050" rpy="-1.5707963267949 0 -1.5707963267949"/>
+        <geometry>
+          <box size="0.04 0.0001 0.04"/>
+        </geometry>
+      </collision>
+
+      <visual>
+        <origin xyz="-0.017 -0.0595 0.050" rpy="-1.5707963267949 0 -1.5707963267949"/>
+        <geometry>
+          <box size="0.04 0.001 0.04"/>
+        </geometry>
+        <pose>0 0 0 1 0 0</pose>
+      </visual>
+    </link>
+
+    <!-- Marker connecter link -->
+    <!-- <joint name="$_marker_joint" type="fixed">
+        <parent link="world"/>
+        <child link="panda_marker_link"/>
+        <origin xyz="0.06 0.06 0.0" rpy="0.0 0.0 0.785398"/>
+    </joint>
+    
+    <link name="panda_marker_link">
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.1 0.04 0.04"/>
+        </geometry>
+      </collision>
+
+      <visual name='visual'>
+        <origin xyz="-0.04 -0.017 0.053" rpy="-1.5707963267949 0 -1.5707963267949"/>
+        <geometry>
+          <mesh filename="package://franka_description/meshes/collision/Franka_connecter.stl" scale="0.001 0.001 0.001" />
+        </geometry>
+        <pose>0 0 0 1 0 0</pose>
+      </visual>
+
+      <inertial>
+        <mass value="1e-5" />
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+      </inertial>
+    </link> -->
+
+    <!-- ArUco marker -->
+    <joint name="marker_joint" type="fixed">
+      <parent link="$(arg arm_id)_link8"/>
+      <child link="marker_link"/>
+      <origin xyz="0.06 0.06 0.0" rpy="0.0 0.0 0.785398"/>
+    </joint>
+    <link name="marker_link">
+      <visual name="visual">
+        <origin xyz="-0.04 -0.016 0.053" rpy="-1.5707963267949 0 -1.5707963267949"/>
+        <geometry>
+          <mesh filename="package://franka_description/meshes/collision/Franka_connecter.stl" scale="0.001 0.001 0.001" />
+        </geometry>
+      </visual>
+    </link>
+
     <xacro:gazebo-joint joint="$(arg arm_id)_joint1" transmission="hardware_interface/PositionJointInterface" />
     <xacro:gazebo-joint joint="$(arg arm_id)_joint2" transmission="hardware_interface/PositionJointInterface" />
     <xacro:gazebo-joint joint="$(arg arm_id)_joint3" transmission="hardware_interface/PositionJointInterface" />

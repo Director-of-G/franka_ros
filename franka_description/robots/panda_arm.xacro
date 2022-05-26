@@ -310,5 +310,6 @@
       <parent link="${arm_id}_link7"/>
       <child link="${arm_id}_link8"/>
     </joint>
+
   </xacro:macro>
 </robot>

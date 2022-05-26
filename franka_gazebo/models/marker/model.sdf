@@ -1,0 +1,32 @@
+<?xml version='1.0'?>
+<sdf version='1.6'>
+  <model name='marker'>
+
+    <!-- <joint name="object_marker_joint" type="fixed">
+      <parent link="link"/>
+      <child link="link1"/>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+    </joint> -->
+
+    <link name='link'>
+      <pose>0.06 0.0 -0.006 1.57079632 0.0 0.0</pose>
+      <gravity>0</gravity>
+      <visual name="visual">
+        <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.001 0.04</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/aruco-123</name>
+            <uri>file://media/materials/scripts/aruco.material</uri>
+          </script>
+        </material>
+      </visual>
+    </link>
+    <static>0</static>
+    <allow_auto_disable>1</allow_auto_disable>
+  </model>
+</sdf>
