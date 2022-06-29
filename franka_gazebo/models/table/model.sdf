@@ -99,7 +99,8 @@
     <allow_auto_disable>1</allow_auto_disable>
 
     <link name='link2'>
-      <pose>-1.05 0.5 0.2099115 0 -0 2.2</pose>
+      <!-- <pose>-1.05 0.5 0.2099115 0 -0 2.2</pose> -->
+      <pose>-0.5 0.6 0.2099115 0 -0 1.57</pose>
       <inertial>
         <pose>0 0 0 0 -0 0</pose>
         <mass>10</mass>

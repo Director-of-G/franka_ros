@@ -35,7 +35,8 @@
     <!--An object to grasp-->
     <include>
       <uri>model://object</uri>
-      <pose>-1.05 0.50 0.475172 0 0 2.2</pose>
+      <!-- <pose>-1.05 0.50 0.475172 0 0 2.2</pose> -->
+      <pose>-0.5 0.50 0.475172 0 0 1.57</pose>
     </include>
     <!-- <joint name="aruco_joint" type="fixed">
       <child>marker::link</child>
